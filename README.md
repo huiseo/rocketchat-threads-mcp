@@ -105,11 +105,29 @@ This MCP works with or without OpenSearch on your Rocket.Chat server:
 | Channel-specific search | ✅ Works | ✅ Works |
 | Global search (no roomId) | ❌ Requires roomId | ✅ Works |
 | Search highlighting | ❌ | ✅ `<mark>` tags |
-| Multi-language search | Limited | ✅ Full support |
+| Multi-language search (Korean, Japanese, Chinese) | ❌ Limited | ✅ Full support |
 
 **How to check:** Try `rocketchat_search_messages` without roomId. If it works, OpenSearch is enabled.
 
 **For server administrators:** To enable OpenSearch with Docker, see [rocketchat-enhanced](https://github.com/huiseo/rocketchat-enhanced) - a single Docker package with RocketChat + OpenSearch + real-time indexing.
+
+### Using MCP Proxy for OpenSearch
+
+If your server has MCP Proxy configured for OpenSearch integration, use the proxy endpoint instead of the direct RocketChat URL:
+
+```env
+# Direct RocketChat (limited search, no CJK language support)
+ROCKETCHAT_URL=https://your-rocketchat-server.com
+
+# Via MCP Proxy (full OpenSearch support, Korean/Japanese/Chinese search)
+ROCKETCHAT_URL=https://your-rocketchat-server.com/mcp-api
+```
+
+**Benefits of MCP Proxy:**
+- ✅ Full-text search with Korean, Japanese, Chinese support (Nori analyzer)
+- ✅ Global search across all channels without roomId
+- ✅ Search result highlighting with `<mark>` tags
+- ✅ Automatic fallback to RocketChat API if OpenSearch unavailable
 
 ---
 
@@ -170,11 +188,29 @@ ROCKETCHAT_WRITE_ROOMS=general,dev-team
 | 채널별 검색 | ✅ 작동 | ✅ 작동 |
 | 전역 검색 (roomId 없이) | ❌ roomId 필요 | ✅ 작동 |
 | 검색 하이라이팅 | ❌ | ✅ `<mark>` 태그 |
-| 다국어 검색 | 제한적 | ✅ 완전 지원 |
+| 한글/일본어/중국어 검색 | ❌ 제한적 | ✅ 완전 지원 |
 
 **확인 방법:** roomId 없이 `rocketchat_search_messages`를 실행해보세요. 작동하면 OpenSearch가 활성화된 것입니다.
 
 **서버 관리자용:** Docker로 OpenSearch를 활성화하려면 [rocketchat-enhanced](https://github.com/huiseo/rocketchat-enhanced)를 참조하세요 - RocketChat + OpenSearch + 실시간 인덱싱이 포함된 단일 Docker 패키지입니다.
+
+### MCP Proxy를 통한 OpenSearch 사용
+
+서버에 OpenSearch 연동을 위한 MCP Proxy가 구성되어 있다면, RocketChat 직접 URL 대신 프록시 엔드포인트를 사용하세요:
+
+```env
+# RocketChat 직접 연결 (검색 제한, 한글 검색 미지원)
+ROCKETCHAT_URL=https://your-rocketchat-server.com
+
+# MCP Proxy 경유 (OpenSearch 전체 지원, 한글 검색 지원)
+ROCKETCHAT_URL=https://your-rocketchat-server.com/mcp-api
+```
+
+**MCP Proxy의 장점:**
+- ✅ 한글, 일본어, 중국어 전문 검색 지원 (Nori 분석기)
+- ✅ roomId 없이 전체 채널 전역 검색
+- ✅ `<mark>` 태그를 사용한 검색 결과 하이라이팅
+- ✅ OpenSearch 사용 불가 시 RocketChat API로 자동 폴백
 
 ---
 
@@ -223,11 +259,29 @@ npm run build
 | チャンネル別検索 | ✅ 動作 | ✅ 動作 |
 | グローバル検索（roomIdなし） | ❌ roomId必須 | ✅ 動作 |
 | 検索ハイライト | ❌ | ✅ `<mark>`タグ |
-| 多言語検索 | 制限あり | ✅ 完全対応 |
+| 韓国語/日本語/中国語検索 | ❌ 制限あり | ✅ 完全対応 |
 
 **確認方法:** roomIdなしで`rocketchat_search_messages`を実行してみてください。動作すればOpenSearchが有効です。
 
 **サーバー管理者向け:** DockerでOpenSearchを有効にするには、[rocketchat-enhanced](https://github.com/huiseo/rocketchat-enhanced)を参照してください - RocketChat + OpenSearch + リアルタイムインデックスを含む単一Dockerパッケージです。
+
+### MCP ProxyによるOpenSearch使用
+
+サーバーにOpenSearch連携用のMCP Proxyが設定されている場合、RocketChatの直接URLの代わりにプロキシエンドポイントを使用してください：
+
+```env
+# RocketChat直接接続（検索制限、日本語検索非対応）
+ROCKETCHAT_URL=https://your-rocketchat-server.com
+
+# MCP Proxy経由（OpenSearch完全対応、日本語検索対応）
+ROCKETCHAT_URL=https://your-rocketchat-server.com/mcp-api
+```
+
+**MCP Proxyの利点:**
+- ✅ 韓国語、日本語、中国語の全文検索対応（Noriアナライザー）
+- ✅ roomIdなしで全チャンネルのグローバル検索
+- ✅ `<mark>`タグによる検索結果ハイライト
+- ✅ OpenSearch利用不可時はRocketChat APIへ自動フォールバック
 
 ---
 
@@ -276,11 +330,29 @@ npm run build
 | 频道内搜索 | ✅ 可用 | ✅ 可用 |
 | 全局搜索（无roomId） | ❌ 需要roomId | ✅ 可用 |
 | 搜索高亮 | ❌ | ✅ `<mark>`标签 |
-| 多语言搜索 | 有限 | ✅ 完全支持 |
+| 韩语/日语/中文搜索 | ❌ 有限 | ✅ 完全支持 |
 
 **检查方法：** 不带roomId运行`rocketchat_search_messages`。如果可以运行，说明OpenSearch已启用。
 
 **服务器管理员：** 要使用Docker启用OpenSearch，请参阅[rocketchat-enhanced](https://github.com/huiseo/rocketchat-enhanced) - 包含RocketChat + OpenSearch + 实时索引的单一Docker包。
+
+### 通过MCP Proxy使用OpenSearch
+
+如果您的服务器已配置用于OpenSearch集成的MCP Proxy，请使用代理端点而不是直接的RocketChat URL：
+
+```env
+# 直接连接RocketChat（搜索受限，不支持中文搜索）
+ROCKETCHAT_URL=https://your-rocketchat-server.com
+
+# 通过MCP Proxy（完全支持OpenSearch，支持中文搜索）
+ROCKETCHAT_URL=https://your-rocketchat-server.com/mcp-api
+```
+
+**MCP Proxy的优势：**
+- ✅ 支持韩语、日语、中文全文搜索（Nori分析器）
+- ✅ 无需roomId即可全局搜索所有频道
+- ✅ 使用`<mark>`标签高亮搜索结果
+- ✅ OpenSearch不可用时自动回退到RocketChat API
 
 ---
 
