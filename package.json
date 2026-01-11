@@ -1,15 +1,16 @@
 {
-  "name": "mcp-server-rocketchat",
-  "version": "0.1.0",
-  "description": "MCP (Model Context Protocol) server for Rocket.Chat - Enable AI agents to interact with Rocket.Chat for knowledge retrieval and messaging",
+  "name": "mcp-server-rocketchat-threads",
+  "version": "1.0.1",
+  "description": "MCP server for Rocket.Chat with full thread support - search, list, and retrieve thread discussions",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "bin": {
-    "mcp-rocketchat": "./dist/index.js"
+    "mcp-server-rocketchat": "./dist/index.js"
   },
   "files": [
     "dist",
-    "README.md"
+    "README.md",
+    "LICENSE"
   ],
   "publishConfig": {
     "access": "public"
@@ -37,11 +38,15 @@
     "messaging",
     "collaboration"
   ],
-  "author": "",
+  "author": "huiseo",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": ""
+    "url": "https://github.com/huiseo/rocketchat-threads-mcp.git"
+  },
+  "homepage": "https://github.com/huiseo/rocketchat-threads-mcp#readme",
+  "bugs": {
+    "url": "https://github.com/huiseo/rocketchat-threads-mcp/issues"
   },
   "engines": {
     "node": ">=18.0.0"

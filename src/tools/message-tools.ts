@@ -120,19 +120,28 @@ const searchMessagesSchema = z.object({
 
 export const searchMessagesTool = defineTool(
     'rocketchat_search_messages',
-    `Search for messages containing specific text in a channel.
+    `Search for messages containing specific text across all channels or in a specific channel.
+
+**IMPORTANT: Use global search (without roomId) first!**
+- Global search finds messages across ALL channels at once
+- Only use roomId if you need to filter results to a specific channel
+- Do NOT iterate through channels one by one - use global search instead
 
 This searches message content (parent messages only, not thread replies).
 For searching within threads, use rocketchat_search_threads instead.
 
+**Search Strategy (Recommended):**
+1. First, try global search WITHOUT roomId - this searches all channels at once
+2. If global search fails with "roomId required" error, then use channel-specific search
+3. Do NOT loop through channels - global search is much more efficient
+
 **OpenSearch Dependency:**
-- WITH roomId: Works on all servers (uses RocketChat native search)
-- WITHOUT roomId (global search): REQUIRES OpenSearch integration
-- If global search fails, add roomId parameter and retry
+- WITHOUT roomId (global search): REQUIRES OpenSearch integration - searches ALL channels
+- WITH roomId: Works on all servers but only searches ONE channel
 
 Returns:
 - Search summary (query, total results, time range)
-- Matching messages with full details
+- Matching messages with full details (including which channel/roomId each message is from)
 - Thread IDs for messages that are thread parents
 - Highlighted text snippets (when OpenSearch is available)
 
@@ -143,12 +152,12 @@ Returns:
 
 **Error Handling:**
 - If "roomId required" error: Server lacks OpenSearch, provide roomId
-- If empty results: Try broader search terms or different channel
+- If empty results: Try broader search terms
 
 Examples:
-- Channel-specific (always works): { "query": "API integration", "roomId": "GENERAL" }
-- Global search (needs OpenSearch): { "query": "authentication" }
-- Find decisions: { "query": "decision", "roomId": "project-alpha" }`,
+- Global search (RECOMMENDED): { "query": "삼성전자" }
+- Global search (RECOMMENDED): { "query": "authentication" }
+- Channel-specific (only if needed): { "query": "API integration", "roomId": "GENERAL" }`,
     searchMessagesSchema,
     async (params) => {
         try {
