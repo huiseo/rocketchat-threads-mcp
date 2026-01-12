@@ -1,4 +1,5 @@
 # Smithery configuration file: https://smithery.ai/docs/config#smitheryyaml
+# This MCP server runs locally via npx - no hosted deployment needed
 
 startCommand:
   type: stdio
@@ -12,11 +13,11 @@ startCommand:
       rocketchatUrl:
         type: string
         title: "Rocket.Chat URL"
-        description: "The URL of your Rocket.Chat server. For OpenSearch support, use /mcp-api endpoint (e.g., https://your-server.com/mcp-api)"
+        description: "The URL of your Rocket.Chat server (e.g., https://chat.example.com)"
       authToken:
         type: string
         title: "Auth Token"
-        description: "Your Rocket.Chat personal access token (generate at My Account > Personal Access Tokens)"
+        description: "Your Rocket.Chat personal access token"
       userId:
         type: string
         title: "User ID"
@@ -25,7 +26,7 @@ startCommand:
         type: boolean
         default: false
         title: "Enable Write Operations"
-        description: "Enable sending messages and creating threads (default: false for safety)"
+        description: "Enable sending messages (default: false for safety)"
   commandFunction: |-
     (config) => ({
       command: 'npx',
@@ -37,9 +38,3 @@ startCommand:
         ROCKETCHAT_WRITE_ENABLED: config.writeEnabled ? 'true' : 'false'
       }
     })
-
-exampleConfig:
-  rocketchatUrl: "https://your-rocketchat-server.com"
-  authToken: "your-auth-token"
-  userId: "your-user-id"
-  writeEnabled: false
