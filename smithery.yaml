@@ -1,8 +1,7 @@
 # Smithery configuration file: https://smithery.ai/docs/config#smitheryyaml
 
-# Build configuration for Docker
-build:
-  dockerFile: Dockerfile
+# Use TypeScript runtime - Smithery builds and hosts
+runtime: typescript
 
 # Start command configuration
 startCommand:
