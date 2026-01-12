@@ -1,0 +1,45 @@
+# Smithery configuration file: https://smithery.ai/docs/config#smitheryyaml
+
+startCommand:
+  type: stdio
+  configSchema:
+    type: object
+    required:
+      - rocketchatUrl
+      - authToken
+      - userId
+    properties:
+      rocketchatUrl:
+        type: string
+        title: "Rocket.Chat URL"
+        description: "The URL of your Rocket.Chat server. For OpenSearch support, use /mcp-api endpoint (e.g., https://your-server.com/mcp-api)"
+      authToken:
+        type: string
+        title: "Auth Token"
+        description: "Your Rocket.Chat personal access token (generate at My Account > Personal Access Tokens)"
+      userId:
+        type: string
+        title: "User ID"
+        description: "Your Rocket.Chat user ID"
+      writeEnabled:
+        type: boolean
+        default: false
+        title: "Enable Write Operations"
+        description: "Enable sending messages and creating threads (default: false for safety)"
+  commandFunction: |-
+    (config) => ({
+      command: 'npx',
+      args: ['-y', 'mcp-server-rocketchat-threads'],
+      env: {
+        ROCKETCHAT_URL: config.rocketchatUrl,
+        ROCKETCHAT_AUTH_TOKEN: config.authToken,
+        ROCKETCHAT_USER_ID: config.userId,
+        ROCKETCHAT_WRITE_ENABLED: config.writeEnabled ? 'true' : 'false'
+      }
+    })
+
+exampleConfig:
+  rocketchatUrl: "https://your-rocketchat-server.com"
+  authToken: "your-auth-token"
+  userId: "your-user-id"
+  writeEnabled: false
