@@ -18,7 +18,7 @@
     "access": "public"
   },
   "scripts": {
-    "build": "tsc",
+    "build": "tsc && smithery build dist/index.js",
     "dev": "node --env-file=.env dist/index.js",
     "start": "node --env-file=.env dist/index.js",
     "start:http": "node --env-file=.env dist/http-server.js",
@@ -59,6 +59,7 @@
     "zod": "^3.22.0"
   },
   "devDependencies": {
+    "@smithery/cli": "^0.1.0",
     "@types/node": "^20.10.0",
     "@typescript-eslint/eslint-plugin": "^6.13.0",
     "@typescript-eslint/parser": "^6.13.0",
