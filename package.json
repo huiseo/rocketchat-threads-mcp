@@ -18,7 +18,7 @@
     "access": "public"
   },
   "scripts": {
-    "build": "tsc",
+    "build": "tsc && npx @smithery/cli build dist/index.js --transport stdio || true",
     "dev": "node --env-file=.env dist/index.js",
     "start": "node --env-file=.env dist/index.js",
     "start:http": "node --env-file=.env dist/http-server.js",
