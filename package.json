@@ -1,8 +1,10 @@
 {
   "name": "mcp-server-rocketchat-threads",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "MCP server for Rocket.Chat with full thread support - search, list, and retrieve thread discussions",
+  "type": "module",
   "main": "dist/index.js",
+  "module": "src/index.ts",
   "types": "dist/index.d.ts",
   "bin": {
     "mcp-server-rocketchat": "./dist/index.js"

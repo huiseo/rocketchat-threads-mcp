@@ -3,8 +3,12 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue.svg)](https://www.typescriptlang.org/)
 [![MCP](https://img.shields.io/badge/MCP-Compatible-green.svg)](https://modelcontextprotocol.io/)
+[![npm](https://img.shields.io/npm/v/mcp-server-rocketchat-threads.svg)](https://www.npmjs.com/package/mcp-server-rocketchat-threads)
+[![OpenSearch](https://img.shields.io/badge/OpenSearch-rocketchat--enhanced-orange.svg)](https://github.com/huiseo/rocketchat-enhanced)
 
 [English](#english) | [한국어](#한국어) | [日本語](#日本語) | [中文](#中文)
+
+> **Recommended:** For full Korean/Japanese/Chinese search support, use with [rocketchat-enhanced](https://github.com/huiseo/rocketchat-enhanced) - Rocket.Chat + OpenSearch + MCP Proxy in one Docker package.
 
 ---
 
@@ -37,6 +41,12 @@ Unlike basic chat integrations, this MCP focuses on **thread-based conversations
 
 ### Installation
 
+**Via npm (Recommended):**
+```bash
+npm install -g mcp-server-rocketchat-threads
+```
+
+**From source:**
 ```bash
 git clone https://github.com/huiseo/rocketchat-threads-mcp.git
 cd rocketchat-threads-mcp
@@ -160,6 +170,12 @@ Rocket.Chat용 MCP (Model Context Protocol) 서버 - AI 에이전트가 스레�
 
 ### 설치
 
+**npm으로 설치 (권장):**
+```bash
+npm install -g mcp-server-rocketchat-threads
+```
+
+**소스에서 설치:**
 ```bash
 git clone https://github.com/huiseo/rocketchat-threads-mcp.git
 cd rocketchat-threads-mcp
@@ -243,6 +259,12 @@ Rocket.Chat用MCP（Model Context Protocol）サーバー - AIエージェント
 
 ### インストール
 
+**npmでインストール（推奨）:**
+```bash
+npm install -g mcp-server-rocketchat-threads
+```
+
+**ソースからインストール:**
 ```bash
 git clone https://github.com/huiseo/rocketchat-threads-mcp.git
 cd rocketchat-threads-mcp
@@ -314,6 +336,12 @@ Rocket.Chat的MCP（Model Context Protocol）服务器 - 使AI代理能够从线
 
 ### 安装
 
+**通过npm安装（推荐）:**
+```bash
+npm install -g mcp-server-rocketchat-threads
+```
+
+**从源码安装:**
 ```bash
 git clone https://github.com/huiseo/rocketchat-threads-mcp.git
 cd rocketchat-threads-mcp
@@ -394,6 +422,25 @@ npm test         # Run 231 tests
 npm run lint     # Lint
 ```
 
+## Related Projects
+
+### [rocketchat-enhanced](https://github.com/huiseo/rocketchat-enhanced)
+
+For the best experience with this MCP, we recommend using **rocketchat-enhanced**:
+
+- Rocket.Chat + OpenSearch + MCP Proxy in one Docker package
+- Real-time message indexing to OpenSearch
+- Full CJK (Korean/Japanese/Chinese) search support with Nori analyzer
+- Global search across all channels without roomId
+- Search result highlighting with `<mark>` tags
+
+```bash
+# Quick start with Docker
+git clone https://github.com/huiseo/rocketchat-enhanced.git
+cd rocketchat-enhanced
+docker-compose up -d
+```
+
 ## License
 
 MIT License - see [LICENSE](LICENSE) for details.
@@ -402,3 +449,4 @@ MIT License - see [LICENSE](LICENSE) for details.
 
 - [MCP (Model Context Protocol)](https://modelcontextprotocol.io/)
 - [Rocket.Chat API](https://developer.rocket.chat/reference/api)
+- [rocketchat-enhanced](https://github.com/huiseo/rocketchat-enhanced) - OpenSearch integration for Rocket.Chat

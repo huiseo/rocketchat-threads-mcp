@@ -138,3 +138,11 @@ main().catch((error) => {
     console.error('Fatal error:', error);
     process.exit(1);
 });
+
+/**
+ * Export createSandboxServer for Smithery scanning
+ * This allows Smithery to scan server capabilities without real credentials
+ */
+export function createSandboxServer(): Server {
+    return createServer();
+}
