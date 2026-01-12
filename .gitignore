@@ -30,6 +30,9 @@ coverage/
 .cache/
 *.tsbuildinfo
 
+# Smithery build artifacts
+.smithery/
+
 # Internal/Sensitive files (not for public repo)
 docs/AIDA_PROJECT_SUMMARY.md
 nginx/
