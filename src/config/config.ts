@@ -119,4 +119,18 @@ export function loadConfig(): Config {
     };
 }
 
-export const config = loadConfig();
+// Lazy config getter - only loads when accessed
+let _config: Config | null = null;
+export function getConfig(): Config {
+    if (!_config) {
+        _config = loadConfig();
+    }
+    return _config;
+}
+
+// For backwards compatibility - lazy getter
+export const config: Config = new Proxy({} as Config, {
+    get(_, prop: keyof Config) {
+        return getConfig()[prop];
+    }
+});

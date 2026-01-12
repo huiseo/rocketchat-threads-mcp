@@ -144,5 +144,11 @@ main().catch((error) => {
  * This allows Smithery to scan server capabilities without real credentials
  */
 export function createSandboxServer(): Server {
+    // Set mock environment variables for scanning
+    if (!process.env.ROCKETCHAT_URL) {
+        process.env.ROCKETCHAT_URL = 'https://sandbox.rocketchat.example';
+        process.env.ROCKETCHAT_AUTH_TOKEN = 'sandbox-token';
+        process.env.ROCKETCHAT_USER_ID = 'sandbox-user';
+    }
     return createServer();
 }
