@@ -147,6 +147,20 @@ export function createSandboxServer(): Server {
     return createServer();
 }
 
+/**
+ * Default export for Smithery hosted deployment
+ * Returns a configured MCP server instance
+ */
+export default function(): Server {
+    // Set mock environment variables if not provided (for Smithery hosting)
+    if (!process.env.ROCKETCHAT_URL) {
+        process.env.ROCKETCHAT_URL = 'https://sandbox.rocketchat.example';
+        process.env.ROCKETCHAT_AUTH_TOKEN = 'sandbox-token';
+        process.env.ROCKETCHAT_USER_ID = 'sandbox-user';
+    }
+    return createServer();
+}
+
 // Only run main() when executed directly (not imported)
 // Check if this module is the entry point
 const isMainModule = process.argv[1]?.includes('index.js') || process.argv[1]?.includes('index.cjs');
