@@ -18,7 +18,7 @@
     "access": "public"
   },
   "scripts": {
-    "build": "tsc && smithery build dist/index.js",
+    "build": "tsc && chmod +x dist/index.js && smithery build dist/index.js",
     "dev": "node --env-file=.env dist/index.js",
     "start": "node --env-file=.env dist/index.js",
     "start:http": "node --env-file=.env dist/http-server.js",
