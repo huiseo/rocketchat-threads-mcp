@@ -6,13 +6,26 @@
 import {
     RocketChatMessage,
     RocketChatRoom,
+    RocketChatSubscription,
     RocketChatUser,
     MessageInfo,
     ChannelInfo,
+    ActiveRoomInfo,
     ThreadInfo,
     UserInfo,
     SearchResultMessage
 } from '../api/types.js';
+
+const ROOM_TYPE_NAMES: Record<string, ChannelInfo['type']> = {
+    'c': 'public',
+    'p': 'private',
+    'd': 'direct',
+    'l': 'livechat'
+};
+
+function truncate(text: string, maxLength: number): string {
+    return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
+}
 
 /**
  * Format a single message for MCP response
@@ -65,18 +78,11 @@ export function formatMessages(messages: RocketChatMessage[]): MessageInfo[] {
  * Format a channel for MCP response
  */
 export function formatChannel(room: RocketChatRoom): ChannelInfo {
-    const typeMap: Record<string, ChannelInfo['type']> = {
-        'c': 'public',
-        'p': 'private',
-        'd': 'direct',
-        'l': 'livechat'
-    };
-
     return {
         id: room._id,
         name: room.name || room._id,
         displayName: room.fname,
-        type: typeMap[room.t] || 'public',
+        type: ROOM_TYPE_NAMES[room.t] || 'public',
         memberCount: room.usersCount,
         messageCount: room.msgs,
         topic: room.topic,
@@ -91,6 +97,24 @@ export function formatChannel(room: RocketChatRoom): ChannelInfo {
  */
 export function formatChannels(rooms: RocketChatRoom[]): ChannelInfo[] {
     return rooms.map(formatChannel);
+}
+
+/**
+ * Format a room with recent activity, merged with the user's subscription counters
+ */
+export function formatActiveRoom(room: RocketChatRoom, subscription?: RocketChatSubscription): ActiveRoomInfo {
+    return {
+        id: room._id,
+        name: subscription?.fname || subscription?.name || room.fname || room.name || (room.usernames || []).join(', '),
+        type: ROOM_TYPE_NAMES[room.t] || 'public',
+        lastMessageAt: room.lm || room._updatedAt,
+        unread: subscription?.unread || 0,
+        mentions: subscription?.userMentions || 0,
+        unreadThreads: subscription?.tunread?.length || 0,
+        lastMessage: room.lastMessage
+            ? { author: room.lastMessage.u.username, text: truncate(room.lastMessage.msg, 100) }
+            : undefined
+    };
 }
 
 /**

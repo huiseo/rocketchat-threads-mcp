@@ -93,7 +93,8 @@ Add to `~/.config/claude/claude_desktop_config.json`:
 | `rocketchat_list_channels` | List accessible channels |
 | `rocketchat_search_channels` | Search channels by name |
 | `rocketchat_get_channel_info` | Get channel details |
-| `rocketchat_get_messages` | Get messages with time filtering |
+| `rocketchat_list_active_rooms` | List direct messages, private groups and channels with new messages since a time, with unread counters |
+| `rocketchat_get_messages` | Get messages from a channel, private group or direct message, with time filtering |
 | `rocketchat_search_messages` | Search message content |
 | `rocketchat_get_message` | Get specific message |
 | `rocketchat_list_threads` | List threads in channel |
