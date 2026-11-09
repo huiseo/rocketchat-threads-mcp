@@ -32,6 +32,28 @@ export interface RocketChatRoom {
     announcement?: string;
     _updatedAt: string;
     lastMessage?: RocketChatMessage;
+    lm?: string;  // Last message timestamp
+    usernames?: string[];  // Direct message participants
+}
+
+/**
+ * Room types that have message history endpoints
+ */
+export type MessageRoomType = 'c' | 'p' | 'd';
+
+/**
+ * Per-user room subscription (unread counters, display name)
+ */
+export interface RocketChatSubscription {
+    _id: string;
+    rid: string;  // Room ID
+    t: RocketChatRoom['t'];
+    name: string;
+    fname?: string;  // Display name; for direct messages, the other user's name
+    unread: number;
+    userMentions: number;
+    tunread?: string[];  // Thread IDs with unread replies
+    _updatedAt: string;
 }
 
 export interface RocketChatMessage {
@@ -83,10 +105,18 @@ export interface RocketChatAttachment {
 
 export interface GetMessagesParams {
     roomId: string;
+    roomType: MessageRoomType;
     count?: number;
     offset?: number;
     sort?: Record<string, 1 | -1>;
-    query?: Record<string, unknown>;
+}
+
+export interface GetRoomHistoryParams {
+    roomId: string;
+    roomType: MessageRoomType;
+    oldest: string;  // ISO 8601; the server uses its own clock for the latest bound
+    count?: number;
+    offset?: number;
 }
 
 export interface GetThreadMessagesParams {
@@ -149,6 +179,26 @@ export interface MessagesResponse {
     count: number;
     offset: number;
     total: number;
+    success: boolean;
+}
+
+export interface RoomHistoryResponse {
+    messages: RocketChatMessage[];
+    success: boolean;
+}
+
+export interface RoomInfoResponse {
+    room: RocketChatRoom;
+    success: boolean;
+}
+
+export interface UpdatedRoomsResponse {
+    update: RocketChatRoom[];
+    success: boolean;
+}
+
+export interface SubscriptionsResponse {
+    update: RocketChatSubscription[];
     success: boolean;
 }
 
@@ -220,6 +270,20 @@ export interface MessageInfo {
     highlight?: string;
     /** Relevance score from OpenSearch */
     score?: number | null;
+}
+
+export interface ActiveRoomInfo {
+    id: string;
+    name: string;
+    type: ChannelInfo['type'];
+    lastMessageAt: string;
+    unread: number;
+    mentions: number;
+    unreadThreads: number;
+    lastMessage?: {
+        author: string;
+        text: string;
+    };
 }
 
 export interface ThreadInfo {

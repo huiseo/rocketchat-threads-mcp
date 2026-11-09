@@ -5,6 +5,7 @@
 
 import { z } from 'zod';
 import { getClient } from '../api/client.js';
+import { RocketChatMessage } from '../api/types.js';
 import { formatMessages, createSearchSummary } from '../formatters/message-formatter.js';
 import { buildSuccessResponse, buildPaginatedResponse } from '../formatters/response-builder.js';
 import { TokenCounter } from '../utils/token-counter.js';
@@ -27,18 +28,19 @@ const logger = getLogger('MessageTools');
  */
 const getMessagesSchema = z.object({
     roomId: z.string()
-        .describe('Channel/room ID to get messages from'),
+        .describe('Room ID to get messages from: public channel, private group or direct message'),
     limit: z.number().min(1).max(100).default(50).optional()
         .describe('Maximum number of messages to return (1-100, default: 50)'),
     offset: z.number().min(0).default(0).optional()
         .describe('Number of messages to skip for pagination'),
     timeRange: z.string().optional()
-        .describe('Time filter: relative (1d, 7d, 1w, 1m), ISO date (2024-01-15), or "oldest" for oldest first')
+        .describe('Time filter: relative (1d, 7d, 1w, 1m), ISO date (2024-01-15) or Unix timestamp')
 });
 
 export const getMessagesTool = defineTool(
     'rocketchat_get_messages',
-    `Get messages from a Rocket.Chat channel.
+    `Get messages from a Rocket.Chat room: public channel, private group or direct message.
+The room type is detected automatically, newest messages come first.
 
 Returns message information including:
 - Message ID, text, and author
@@ -54,8 +56,11 @@ Time filtering options:
 
 Examples:
 - Recent messages: { "roomId": "GENERAL" }
-- Last 24 hours: { "roomId": "GENERAL", "timeRange": "1d" }
-- Last week: { "roomId": "GENERAL", "timeRange": "1w", "limit": 100 }`,
+- Today since midnight: { "roomId": "GENERAL", "timeRange": "1d" }
+- Last week: { "roomId": "GENERAL", "timeRange": "1w", "limit": 100 }
+
+With timeRange the server reports no total: request the next page with offset while a page is full.
+To find direct messages and private groups with recent activity, use rocketchat_list_active_rooms.`,
     getMessagesSchema,
     async (params) => {
         try {
@@ -63,39 +68,65 @@ Examples:
             const limit = params.limit || 50;
             const offset = params.offset || 0;
 
-            // Build query with time filter if provided
-            let query: Record<string, unknown> | undefined;
+            const roomInfo = await client.getRoomInfo(params.roomId);
+            if (!roomInfo.success) {
+                return createErrorResult(ErrorCodes.NOT_FOUND, 'Room not found', `No room found with ID "${params.roomId}"`);
+            }
+            const roomType = roomInfo.room.t;
+            if (roomType !== 'c' && roomType !== 'p' && roomType !== 'd') {
+                return createErrorResult(
+                    ErrorCodes.VALIDATION_ERROR,
+                    'Unsupported room type',
+                    `Room "${params.roomId}" has type "${roomType}": only public channels, private groups and direct messages are supported`
+                );
+            }
+
+            let range: ReturnType<typeof parseTimeExpression> | undefined;
             if (params.timeRange) {
                 try {
-                    const range = parseTimeExpression(params.timeRange);
-                    query = {
-                        ts: {
-                            $gte: range.start.toISOString(),
-                            $lte: range.end.toISOString()
-                        }
-                    };
+                    range = parseTimeExpression(params.timeRange);
                 } catch (error) {
                     // Invalid time expression, log and continue without filter
                     logger.debug('Invalid time expression, ignoring filter', { timeRange: params.timeRange, error });
                 }
             }
 
-            const response = await client.getMessages({
-                roomId: params.roomId,
-                count: limit,
-                offset,
-                query,
-                sort: { ts: -1 }  // Newest first
-            });
-
-            if (!response.success) {
-                return createErrorResult(ErrorCodes.API_ERROR, 'Failed to get messages');
+            let messages: RocketChatMessage[];
+            let total: number | undefined;
+            if (range) {
+                const history = await client.getRoomHistory({
+                    roomId: params.roomId,
+                    roomType,
+                    oldest: range.start.toISOString(),
+                    count: limit,
+                    offset
+                });
+                if (!history.success) {
+                    return createErrorResult(ErrorCodes.API_ERROR, 'Failed to get messages');
+                }
+                // History endpoints do not report a total
+                messages = history.messages;
+            } else {
+                const response = await client.getMessages({
+                    roomId: params.roomId,
+                    roomType,
+                    count: limit,
+                    offset,
+                    sort: { ts: -1 }  // Newest first
+                });
+                if (!response.success) {
+                    return createErrorResult(ErrorCodes.API_ERROR, 'Failed to get messages');
+                }
+                messages = response.messages;
+                total = response.total;
             }
 
-            const formatted = formatMessages(response.messages);
+            const formatted = formatMessages(messages);
             const { items, truncated } = TokenCounter.truncateToFit(formatted);
 
-            const result = buildPaginatedResponse(items, response.total, offset, truncated);
+            const result = total === undefined
+                ? buildSuccessResponse(items, { count: items.length, offset, truncated })
+                : buildPaginatedResponse(items, total, offset, truncated);
             return createToolResult(result);
         } catch (error) {
             return createErrorResultFromException(ErrorCodes.API_ERROR, 'Failed to get messages', error);

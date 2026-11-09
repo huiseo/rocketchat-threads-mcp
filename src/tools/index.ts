@@ -15,7 +15,7 @@ export { toolRegistry, createToolResult, createErrorResult } from './base.js';
 export type { ToolDefinition, ToolResult } from './base.js';
 
 // Export individual tools for direct access if needed
-export { listChannelsTool, searchChannelsTool, getChannelInfoTool } from './channel-tools.js';
+export { listChannelsTool, searchChannelsTool, getChannelInfoTool, listActiveRoomsTool } from './channel-tools.js';
 export { getMessagesTool, searchMessagesTool, getMessageTool } from './message-tools.js';
 export { listThreadsTool, getThreadTool, searchThreadsTool } from './thread-tools.js';
 export { lookupUserTool, listUsersTool, getMeTool } from './user-tools.js';

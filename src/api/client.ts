@@ -16,12 +16,31 @@ import {
     RocketChatMessage,
     RocketChatRoom,
     GetMessagesParams,
+    GetRoomHistoryParams,
     GetThreadMessagesParams,
     SearchMessagesParams,
     SendMessageParams,
     GetRoomsParams,
-    MeResponse
+    MeResponse,
+    MessageRoomType,
+    RoomHistoryResponse,
+    RoomInfoResponse,
+    UpdatedRoomsResponse,
+    SubscriptionsResponse
 } from './types.js';
+
+// Rocket.Chat has separate REST endpoints per room type: channels (c), groups (p), dm (d)
+const MESSAGES_ENDPOINTS: Record<MessageRoomType, string> = {
+    c: '/channels.messages',
+    p: '/groups.messages',
+    d: '/dm.messages'
+};
+
+const HISTORY_ENDPOINTS: Record<MessageRoomType, string> = {
+    c: '/channels.history',
+    p: '/groups.history',
+    d: '/dm.history'
+};
 
 export class RocketChatClient {
     private baseUrl: string;
@@ -153,16 +172,53 @@ export class RocketChatClient {
     // ============================================
 
     /**
-     * Get messages from a channel
+     * Get room info for any room type (public, private, direct)
+     */
+    async getRoomInfo(roomId: string): Promise<RoomInfoResponse> {
+        return this.request<RoomInfoResponse>('GET', '/rooms.info', { roomId }, true);
+    }
+
+    /**
+     * Get messages from a room of the given type
      */
     async getMessages(params: GetMessagesParams): Promise<MessagesResponse> {
-        return this.request<MessagesResponse>('GET', '/channels.messages', {
+        return this.request<MessagesResponse>('GET', MESSAGES_ENDPOINTS[params.roomType], {
             roomId: params.roomId,
             count: params.count || 50,
             offset: params.offset || 0,
-            sort: params.sort ? JSON.stringify(params.sort) : undefined,
-            query: params.query ? JSON.stringify(params.query) : undefined
+            sort: params.sort ? JSON.stringify(params.sort) : undefined
         });
+    }
+
+    /**
+     * Get room messages since a time, newest first.
+     * The history endpoints filter by time on the server; the messages endpoints
+     * do not apply an ISO-string `query` filter to the Date `ts` field.
+     * Thread replies are included, as in the messages endpoints.
+     */
+    async getRoomHistory(params: GetRoomHistoryParams): Promise<RoomHistoryResponse> {
+        return this.request<RoomHistoryResponse>('GET', HISTORY_ENDPOINTS[params.roomType], {
+            roomId: params.roomId,
+            oldest: params.oldest,
+            showThreadMessages: 'true',
+            count: params.count || 50,
+            offset: params.offset || 0
+        });
+    }
+
+    /**
+     * Rooms of the current user changed since the given date (new messages, thread replies, metadata)
+     */
+    async getUpdatedRooms(updatedSince: string): Promise<UpdatedRoomsResponse> {
+        return this.request<UpdatedRoomsResponse>('GET', '/rooms.get', { updatedSince });
+    }
+
+    /**
+     * All subscriptions (unread counters) of the current user.
+     * Not filtered by date: unread counters set on earlier days are not re-sent with updatedSince.
+     */
+    async getSubscriptions(): Promise<SubscriptionsResponse> {
+        return this.request<SubscriptionsResponse>('GET', '/subscriptions.get', {});
     }
 
     /**

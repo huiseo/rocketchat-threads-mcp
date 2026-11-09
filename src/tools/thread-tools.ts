@@ -34,12 +34,12 @@ const listThreadsSchema = z.object({
     offset: z.number().min(0).default(0).optional()
         .describe('Number of threads to skip for pagination'),
     timeRange: z.string().optional()
-        .describe('Time filter: relative (1d, 7d, 1w, 1m) or ISO date')
+        .describe('Activity filter: relative (1d, 7d, 1w, 1m) or ISO date. Matches threads by last reply, or by creation when there are no replies')
 });
 
 export const listThreadsTool = defineTool(
     'rocketchat_list_threads',
-    `List all threads in a Rocket.Chat channel.
+    `List all threads in a Rocket.Chat channel, most recently active first.
 
 Returns thread information including:
 - Thread ID (same as parent message ID)
@@ -47,6 +47,8 @@ Returns thread information including:
 - Author and creation time
 - Reply count and last reply time
 - Participant user IDs
+
+timeRange keeps threads with activity in the range: an old thread with a fresh reply is included.
 
 Use this to discover discussions in a channel before diving into details.
 
@@ -72,10 +74,8 @@ Examples:
             if (params.timeRange) {
                 try {
                     const range = parseTimeExpression(params.timeRange);
-                    threads = threads.filter(t => {
-                        const threadTime = new Date(t.ts).getTime();
-                        return threadTime >= range.start.getTime() && threadTime <= range.end.getTime();
-                    });
+                    // No upper bound: the range always ends now, and the MCP host clock may lag behind the server
+                    threads = threads.filter(t => new Date(t.tlm || t.ts).getTime() >= range.start.getTime());
                 } catch (error) {
                     // Invalid time expression, log and ignore
                     logger.debug('Invalid time expression, ignoring filter', { timeRange: params.timeRange, error });

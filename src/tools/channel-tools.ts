@@ -5,9 +5,10 @@
 
 import { z } from 'zod';
 import { getClient } from '../api/client.js';
-import { formatChannels } from '../formatters/message-formatter.js';
+import { formatChannels, formatActiveRoom } from '../formatters/message-formatter.js';
 import { buildSuccessResponse, buildPaginatedResponse } from '../formatters/response-builder.js';
 import { TokenCounter } from '../utils/token-counter.js';
+import { parseTimeExpression } from '../utils/time-parser.js';
 import {
     defineTool,
     createToolResult,
@@ -187,7 +188,92 @@ Examples:
     }
 );
 
+/**
+ * rocketchat_list_active_rooms
+ * Rooms of the current user with new messages since a given time
+ */
+const listActiveRoomsSchema = z.object({
+    since: z.string().default('1d').optional()
+        .describe('Activity since: relative (1d = today since midnight, 7d), ISO date (2024-01-15) or Unix timestamp. Default: 1d'),
+    types: z.array(z.enum(['direct', 'private', 'public'])).optional()
+        .describe('Room types to include. Default: all'),
+    limit: z.number().min(1).max(200).default(50).optional()
+        .describe('Maximum number of rooms to return (1-200, default: 50)')
+});
+
+export const listActiveRoomsTool = defineTool(
+    'rocketchat_list_active_rooms',
+    `List the current user's rooms with new messages since a given time: direct messages, private groups and public channels.
+
+A room is active when its last message is newer than \`since\`, or when it got unread messages,
+mentions or thread replies since then (a thread reply does not change the room's last message).
+Sorted by last message time, newest first. For each room returns:
+- Room ID, type and name (for direct messages, the other person's name)
+- Last message time and a short preview of the last message
+- Unread counter, mentions and threads with unread replies.
+  In channels and groups the unread counter may count only mentions, depending on server settings.
+
+**Typical Workflow:**
+1. rocketchat_list_active_rooms → Find direct messages with activity
+2. rocketchat_get_messages with the same time range → Read them
+
+Examples:
+- Direct messages today: { "types": ["direct"] }
+- Everything since a date: { "since": "2024-01-15" }`,
+    listActiveRoomsSchema,
+    async (params) => {
+        let since: Date;
+        try {
+            since = parseTimeExpression(params.since || '1d').start;
+        } catch (error) {
+            return createErrorResult(
+                ErrorCodes.VALIDATION_ERROR,
+                'Invalid time expression',
+                error instanceof Error ? error.message : String(error)
+            );
+        }
+
+        try {
+            const client = getClient();
+            const [rooms, subscriptions] = await Promise.all([
+                client.getUpdatedRooms(since.toISOString()),
+                client.getSubscriptions()
+            ]);
+
+            if (!rooms.success || !subscriptions.success) {
+                return createErrorResult(ErrorCodes.API_ERROR, 'Failed to list active rooms');
+            }
+
+            const isSince = (timestamp?: string) => !!timestamp && new Date(timestamp).getTime() >= since.getTime();
+            const subscriptionsByRoom = new Map(subscriptions.update.map(s => [s.rid, s]));
+            // rooms.get also returns rooms changed for other reasons (topic, members): keep new messages and fresh unread activity
+            const active = rooms.update
+                .filter(room => room.t === 'c' || room.t === 'p' || room.t === 'd')
+                .filter(room => {
+                    const subscription = subscriptionsByRoom.get(room._id);
+                    const hasFreshUnread = !!subscription && isSince(subscription._updatedAt)
+                        && (subscription.unread > 0 || subscription.userMentions > 0 || (subscription.tunread?.length || 0) > 0);
+                    return isSince(room.lm) || hasFreshUnread;
+                })
+                .map(room => formatActiveRoom(room, subscriptionsByRoom.get(room._id)))
+                .filter(room => !params.types || params.types.includes(room.type as 'direct' | 'private' | 'public'))
+                .sort((a, b) => new Date(b.lastMessageAt).getTime() - new Date(a.lastMessageAt).getTime());
+
+            const { items, truncated } = TokenCounter.truncateToFit(active.slice(0, params.limit || 50));
+            const result = buildSuccessResponse(items, {
+                count: items.length,
+                total: active.length,
+                truncated
+            });
+            return createToolResult(result);
+        } catch (error) {
+            return createErrorResultFromException(ErrorCodes.API_ERROR, 'Failed to list active rooms', error);
+        }
+    }
+);
+
 // Register tools
 toolRegistry.register(listChannelsTool);
 toolRegistry.register(searchChannelsTool);
 toolRegistry.register(getChannelInfoTool);
+toolRegistry.register(listActiveRoomsTool);
